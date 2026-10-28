@@ -1,0 +1,40 @@
+name: Autonomous Behavioral Matrix
+on:
+  schedule:
+    # 11:15 AM CST (16:15 UTC) - Midday Class Transition
+    - cron: '15 16 * * *'
+    # 4:15 PM CST (21:15 UTC) - Post-Engineering Lab Cortisol Window
+    - cron: '15 21 * * *'
+    # 11:30 PM & 1:15 AM CST (04:30 & 06:15 UTC) - Late Night Isolation Windows
+    - cron: '30 4 * * *'
+    - cron: '15 6 * * *'
+  workflow_dispatch:
+
+jobs:
+  execute-brain:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install google-genai supabase requests atproto
+      - env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          BSKY_HANDLE: ${{ secrets.BSKY_HANDLE }}
+          BSKY_APP_PASSWORD: ${{ secrets.BSKY_APP_PASSWORD }}
+          MATRIX_ROOM_ID: ${{ secrets.MATRIX_ROOM_ID }}
+          MATRIX_ACCESS_TOKEN: ${{ secrets.MATRIX_ACCESS_TOKEN }}
+        run: python brain.py
+      - name: Keep-Alive Commit (Prevents GitHub 60-Day Cron Pause)
+        run: |
+           date > last_run.txt
+          git config user.name "matrix-bot"
+          git config user.email "bot@noreply.github.com"
+          git add last_run.txt
+          git commit -m "keepalive" || exit 0
+          git push || exit 0
