@@ -7,15 +7,16 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   body { margin:0; background:#060608; color:#f4f4f6; font-family:system-ui,-apple-system,sans-serif; display:flex; align-items:center; justify-content:center; min-height:100vh; text-align:center; }
-  .card { background:#101015; padding:20px; border-radius:18px; max-width:380px; width:92%; border:1px solid #262632; box-shadow:0 16px 40px rgba(0,0,0,0.95); }
+  .card { background:#101015; padding:22px; border-radius:18px; max-width:380px; width:92%; border:1px solid #262632; box-shadow:0 16px 40px rgba(0,0,0,0.95); }
   .badge { background:#6366f1; color:#fff; font-size:0.68rem; font-weight:800; padding:4px 10px; border-radius:99px; text-transform:uppercase; }
   .tabs { display:flex; gap:6px; margin:12px 0; justify-content:center; flex-wrap:wrap; }
   .tab { background:#1d1d26; color:#a1a1aa; border:1px solid #2e2e3a; border-radius:8px; padding:6px 10px; font-size:0.75rem; cursor:pointer; font-weight:600; }
   .tab.active { background:#6366f1; color:#fff; border-color:#6366f1; }
   h2 { margin:10px 0 8px; font-size:1.05rem; line-height:1.35; }
   p { color:#a1a1aa; font-size:0.85rem; line-height:1.4; margin-bottom:14px; }
-  video { width:100%; border-radius:12px; background:#000; max-height:430px; object-fit:cover; margin-bottom:12px; border:1px solid #27272a; }
+  video { width:100%; border-radius:12px; background:#000; max-height:420px; object-fit:cover; margin-bottom:12px; border:1px solid #27272a; }
   .btn { display:block; width:100%; padding:13px 0; background:#6366f1; color:#fff; text-decoration:none; border-radius:10px; font-weight:700; font-size:0.93rem; border:none; cursor:pointer; margin-bottom:9px; }
+  .btn-disc { background:#5865F2; }
   .btn-hot { background:#e11d48; }
   .btn-mat { background:#1f1f29; color:#d4d4d8; font-size:0.82rem; }
   #vault { display:none; }
@@ -26,31 +27,41 @@
 <div class="card" id="gate">
   <span class="badge">18+ MANDATORY AGE GATE</span>
   <h2>Late Night Sensory Reset & Archive</h2>
-  <p>This autonomous study-break hub curates high-stimulus binaural loops and outbound links to unmoderated 18+ feeds. Confirm you are 18+ to enter.</p>
+  <p>This autonomous study-break hub curates high-stimulus binaural loops and links to unmoderated 18+ Discord & Reddit feeds. Confirm you are 18+ to enter.</p>
   <button class="btn" onclick="unlock()">I am 18 or older — Unlock Vault</button>
 </div>
 
 <div class="card" id="vault">
   <span class="badge" id="tierTag">6-SEC BINAURAL LOOP</span>
   <div class="tabs">
-    <button class="tab" onclick="setTrack(null, this)">All</button>
+    <button class="tab active" onclick="setTrack(null, this)">All</button>
     <button class="tab" onclick="setTrack('p1_stem', this)">Tech/Alt</button>
     <button class="tab" onclick="setTrack('p2_bus', this)">Fit/Lounge</button>
     <button class="tab" onclick="setTrack('p3_clas', this)">Late Study</button>
     <button class="tab" onclick="setTrack('p4_fem_asmr', this)">ASMR/Audio</button>
   </div>
   <h2 id="hookTitle">Loading sensory loop...</h2>
-  <video id="vidPlayer" playsinline autoplay loop controlsList="nodownload"></video>
+  <video id="vidPlayer" playsinline autoplay loop controls></video>
   <button class="btn" onclick="nextLoop()">↻ Next Variable Loop (Coolidge Shift)</button>
-  <a id="payoffLink" href="#" target="_blank" class="btn btn-hot" onclick="trackConvert()">🔥 Unlock Full Uncensored 18+ Feed</a>
-  <a href="https://app.element.io/#/room/#latenightvault:matrix.org" target="_blank" class="btn btn-mat">Join Encrypted Matrix Drop Room</a>
+  <a id="discordLink" href="#" target="_blank" class="btn btn-disc" onclick="trackConvert()">💬 Join 18+ Unfiltered Discord Server</a>
+  <a id="payoffLink" href="#" target="_blank" class="btn btn-hot" onclick="trackConvert()">🔥 Open Direct 18+ Trend Feed</a>
+  <a id="matrixLink" href="#" target="_blank" class="btn btn-mat">Join Backup Encrypted Matrix Room</a>
 </div>
 
 <script>
-const sb = supabase.createClient("https://btqqzpkcuqqevlelozlb.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ0cXF6cGtjdXFxZXZsZWxvemxiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMyMjI2OTYsImV4cCI6MjEwODc5ODY5Nn0.jafB2YzCTJ0kAmSdpZ8pByvwb8DQUy54Pl8jiDMkJ3Q");
+// PASTE YOUR 4 VALUES INSIDE THE QUOTES BELOW:
+const SUPABASE_URL = "https://btqqzpkcuqqevlelozlb.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ0cXF6cGtjdXFxZXZsZWxvemxiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMyMjI2OTYsImV4cCI6MjEwODc5ODY5Nn0.jafB2YzCTJ0kAmSdpZ8pByvwb8DQUy54Pl8jiDMkJ3Q";
+const DISCORD_INVITE = "https://discord.gg/M2hH8xX6E";
+const MATRIX_INVITE = "https://app.element.io/#/room/#latenightvault:matrix.org";
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const urlParams = new URLSearchParams(window.location.search);
 let currentTrack = urlParams.get('track') || null;
 let activeId = null;
+
+document.getElementById('discordLink').href = DISCORD_INVITE;
+document.getElementById('matrixLink').href = MATRIX_INVITE;
 
 async function unlock() {
   document.getElementById('gate').style.display = 'none';
