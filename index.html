@@ -3,42 +3,53 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<title>Late Night Focus & Reset Hub</title>
+<title>Late Night Sensory Reset Hub</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-  body { margin:0; background:#070709; color:#f4f4f6; font-family:system-ui,-apple-system,sans-serif; display:flex; align-items:center; justify-content:center; min-height:100vh; text-align:center; }
-  .card { background:#111116; padding:22px; border-radius:18px; max-width:375px; width:92%; border:1px solid #272732; box-shadow:0 16px 40px rgba(0,0,0,0.92); }
-  .badge { background:#6366f1; color:#fff; font-size:0.7rem; font-weight:800; padding:4px 10px; border-radius:99px; letter-spacing:0.6px; text-transform:uppercase; }
-  h2 { margin:12px 0 8px; font-size:1.12rem; line-height:1.35; }
-  p { color:#a1a1aa; font-size:0.86rem; line-height:1.45; margin-bottom:16px; }
-  video { width:100%; border-radius:12px; background:#000; max-height:450px; object-fit:cover; margin-bottom:12px; border:1px solid #27272a; }
-  .btn { display:block; width:100%; padding:13px 0; background:#6366f1; color:#fff; text-decoration:none; border-radius:10px; font-weight:700; font-size:0.95rem; border:none; cursor:pointer; margin-bottom:10px; }
+  body { margin:0; background:#060608; color:#f4f4f6; font-family:system-ui,-apple-system,sans-serif; display:flex; align-items:center; justify-content:center; min-height:100vh; text-align:center; }
+  .card { background:#101015; padding:20px; border-radius:18px; max-width:380px; width:92%; border:1px solid #262632; box-shadow:0 16px 40px rgba(0,0,0,0.95); }
+  .badge { background:#6366f1; color:#fff; font-size:0.68rem; font-weight:800; padding:4px 10px; border-radius:99px; text-transform:uppercase; }
+  .tabs { display:flex; gap:6px; margin:12px 0; justify-content:center; flex-wrap:wrap; }
+  .tab { background:#1d1d26; color:#a1a1aa; border:1px solid #2e2e3a; border-radius:8px; padding:6px 10px; font-size:0.75rem; cursor:pointer; font-weight:600; }
+  .tab.active { background:#6366f1; color:#fff; border-color:#6366f1; }
+  h2 { margin:10px 0 8px; font-size:1.05rem; line-height:1.35; }
+  p { color:#a1a1aa; font-size:0.85rem; line-height:1.4; margin-bottom:14px; }
+  video { width:100%; border-radius:12px; background:#000; max-height:430px; object-fit:cover; margin-bottom:12px; border:1px solid #27272a; }
+  .btn { display:block; width:100%; padding:13px 0; background:#6366f1; color:#fff; text-decoration:none; border-radius:10px; font-weight:700; font-size:0.93rem; border:none; cursor:pointer; margin-bottom:9px; }
   .btn-hot { background:#e11d48; }
-  .btn-mat { background:#1f1f29; color:#d4d4d8; font-size:0.84rem; }
+  .btn-mat { background:#1f1f29; color:#d4d4d8; font-size:0.82rem; }
   #vault { display:none; }
 </style>
 </head>
 <body>
 
 <div class="card" id="gate">
-  <span class="badge">18+ COMPLIANCE GATE</span>
-  <h2>Late Night Sensory Reset Vault</h2>
-  <p>This curated study-break feed features high-stimulus audio-visual loops and outbound links to unmoderated 18+ communities. Confirm you are 18 or older to enter.</p>
-  <button class="btn" onclick="unlock()">I am 18 or older — Enter Vault</button>
+  <span class="badge">18+ MANDATORY AGE GATE</span>
+  <h2>Late Night Sensory Reset & Archive</h2>
+  <p>This autonomous study-break hub curates high-stimulus binaural loops and outbound links to unmoderated 18+ feeds. Confirm you are 18+ to enter.</p>
+  <button class="btn" onclick="unlock()">I am 18 or older — Unlock Vault</button>
 </div>
 
 <div class="card" id="vault">
   <span class="badge" id="tierTag">6-SEC BINAURAL LOOP</span>
-  <h2 id="hookTitle">Syncing late-night loop...</h2>
+  <div class="tabs">
+    <button class="tab" onclick="setTrack(null, this)">All</button>
+    <button class="tab" onclick="setTrack('p1_stem', this)">Tech/Alt</button>
+    <button class="tab" onclick="setTrack('p2_bus', this)">Fit/Lounge</button>
+    <button class="tab" onclick="setTrack('p3_clas', this)">Late Study</button>
+    <button class="tab" onclick="setTrack('p4_fem_asmr', this)">ASMR/Audio</button>
+  </div>
+  <h2 id="hookTitle">Loading sensory loop...</h2>
   <video id="vidPlayer" playsinline autoplay loop controlsList="nodownload"></video>
   <button class="btn" onclick="nextLoop()">↻ Next Variable Loop (Coolidge Shift)</button>
-  <a id="payoffLink" href="#" target="_blank" class="btn btn-hot" onclick="trackConvert()">🔥 Open Full Uncensored Feed (18+)</a>
+  <a id="payoffLink" href="#" target="_blank" class="btn btn-hot" onclick="trackConvert()">🔥 Unlock Full Uncensored 18+ Feed</a>
   <a href="https://app.element.io/#/room/#latenightvault:matrix.org" target="_blank" class="btn btn-mat">Join Encrypted Matrix Drop Room</a>
 </div>
 
 <script>
 const sb = supabase.createClient("https://btqqzpkcuqqevlelozlb.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ0cXF6cGtjdXFxZXZsZWxvemxiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMyMjI2OTYsImV4cCI6MjEwODc5ODY5Nn0.jafB2YzCTJ0kAmSdpZ8pByvwb8DQUy54Pl8jiDMkJ3Q");
+const urlParams = new URLSearchParams(window.location.search);
+let currentTrack = urlParams.get('track') || null;
 let activeId = null;
 
 async function unlock() {
@@ -47,8 +58,19 @@ async function unlock() {
   await nextLoop();
 }
 
+async function setTrack(t, btn) {
+  currentTrack = t;
+  document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+  btn.classList.add('active');
+  await nextLoop();
+}
+
 async function nextLoop() {
-  const { data } = await sb.rpc('get_optimal_asset');
+  let { data } = await sb.rpc('get_optimal_asset', { req_track: currentTrack, pref_arch: null });
+  if (!data || data.length === 0) {
+    const fallback = await sb.rpc('get_optimal_asset', { req_track: null, pref_arch: null });
+    data = fallback.data;
+  }
   if (data && data.length > 0) {
     const item = data[0];
     activeId = item.asset_id;
@@ -58,7 +80,9 @@ async function nextLoop() {
     v.play().catch(() => { v.muted = true; v.play(); });
 
     document.getElementById('hookTitle').innerText = item.cortisol_hook;
-    document.getElementById('tierTag').innerText = item.intensity_tier === 'payoff_30' ? '🔥 30% HIGH-STIMULUS DROP' : '🎧 6-SEC SENSORY RESET';
+    document.getElementById('tierTag').innerText = item.intensity_tier === 'payoff_30'
+      ? `🔥 30% PAYOFF DROP • ${item.fetish_tag.toUpperCase()}`
+      : `🎧 6-SEC RESET • ${item.archetype.toUpperCase()}`;
     document.getElementById('payoffLink').href = item.payoff_url;
     await sb.rpc('record_interaction', { target_id: activeId, is_conversion: false });
   }
