@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Late Night Focus & Reset Hub</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  body { margin:0; background:#070709; color:#f4f4f6; font-family:system-ui,-apple-system,sans-serif; display:flex; align-items:center; justify-content:center; min-height:100vh; text-align:center; }
+  .card { background:#111116; padding:22px; border-radius:18px; max-width:375px; width:92%; border:1px solid #272732; box-shadow:0 16px 40px rgba(0,0,0,0.92); }
+  .badge { background:#6366f1; color:#fff; font-size:0.7rem; font-weight:800; padding:4px 10px; border-radius:99px; letter-spacing:0.6px; text-transform:uppercase; }
+  h2 { margin:12px 0 8px; font-size:1.12rem; line-height:1.35; }
+  p { color:#a1a1aa; font-size:0.86rem; line-height:1.45; margin-bottom:16px; }
+  video { width:100%; border-radius:12px; background:#000; max-height:450px; object-fit:cover; margin-bottom:12px; border:1px solid #27272a; }
+  .btn { display:block; width:100%; padding:13px 0; background:#6366f1; color:#fff; text-decoration:none; border-radius:10px; font-weight:700; font-size:0.95rem; border:none; cursor:pointer; margin-bottom:10px; }
+  .btn-hot { background:#e11d48; }
+  .btn-mat { background:#1f1f29; color:#d4d4d8; font-size:0.84rem; }
+  #vault { display:none; }
+</style>
+</head>
+<body>
+
+<div class="card" id="gate">
+  <span class="badge">18+ COMPLIANCE GATE</span>
+  <h2>Late Night Sensory Reset Vault</h2>
+  <p>This curated study-break feed features high-stimulus audio-visual loops and outbound links to unmoderated 18+ communities. Confirm you are 18 or older to enter.</p>
+  <button class="btn" onclick="unlock()">I am 18 or older — Enter Vault</button>
+</div>
+
+<div class="card" id="vault">
+  <span class="badge" id="tierTag">6-SEC BINAURAL LOOP</span>
+  <h2 id="hookTitle">Syncing late-night loop...</h2>
+  <video id="vidPlayer" playsinline autoplay loop controlsList="nodownload"></video>
+  <button class="btn" onclick="nextLoop()">↻ Next Variable Loop (Coolidge Shift)</button>
+  <a id="payoffLink" href="#" target="_blank" class="btn btn-hot" onclick="trackConvert()">🔥 Open Full Uncensored Feed (18+)</a>
+  <a href="https://app.element.io/#/room/#latenightvault:matrix.org" target="_blank" class="btn btn-mat">Join Encrypted Matrix Drop Room</a>
+</div>
+
+<script>
+const sb = supabase.createClient("https://btqqzpkcuqqevlelozlb.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ0cXF6cGtjdXFxZXZsZWxvemxiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMyMjI2OTYsImV4cCI6MjEwODc5ODY5Nn0.jafB2YzCTJ0kAmSdpZ8pByvwb8DQUy54Pl8jiDMkJ3Q");
+let activeId = null;
+
+async function unlock() {
+  document.getElementById('gate').style.display = 'none';
+  document.getElementById('vault').style.display = 'block';
+  await nextLoop();
+}
+
+async function nextLoop() {
+  const { data } = await sb.rpc('get_optimal_asset');
+  if (data && data.length > 0) {
+    const item = data[0];
+    activeId = item.asset_id;
+    const v = document.getElementById('vidPlayer');
+    v.src = item.video_url;
+    v.muted = false;
+    v.play().catch(() => { v.muted = true; v.play(); });
+
+    document.getElementById('hookTitle').innerText = item.cortisol_hook;
+    document.getElementById('tierTag').innerText = item.intensity_tier === 'payoff_30' ? '🔥 30% HIGH-STIMULUS DROP' : '🎧 6-SEC SENSORY RESET';
+    document.getElementById('payoffLink').href = item.payoff_url;
+    await sb.rpc('record_interaction', { target_id: activeId, is_conversion: false });
+  }
+}
+
+async function trackConvert() {
+  if (activeId) {
+    await sb.rpc('record_interaction', { target_id: activeId, is_conversion: true });
+  }
+}
+</script>
+</body>
+</html>
