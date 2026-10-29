@@ -1,110 +1,118 @@
 import os, json, uuid, requests, xml.etree.ElementTree as ET
+from datetime import datetime, timezone, timedelta
 from google import genai
 from supabase import create_client
-from atproto import Client as BskyClient, models
+from atproto import Client as BskyClient
 
 sb = create_client(os.environ["SUPABASE_URL"], os.environ["SUPABASE_KEY"])
 ai = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
-HEADERS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) TrendBot/1.0"}
+UA = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) MatrixTelemetry/4.0"}
 
-# 1. SCRAPE LIVE KU STUDENT STRESSORS (READ-ONLY PUBLIC JSON, NO API KEY NEEDED)
-ku_posts = []
-try:
-    r = requests.get("https://www.reddit.com/r/UniversityofKansas/new.json?limit=8", headers=HEADERS, timeout=10)
-    for post in r.json().get("data", {}).get("children", []):
-        ku_posts.append(post["data"].get("title", ""))
-except Exception:
-    ku_posts = ["Midterm exam burnout and late night lab deadlines"]
+# 1. DETERMINE CURRENT LAWRENCE CST DAY & TIME WINDOW DYNAMICALLY
+cst_now = datetime.now(timezone(timedelta(hours=-6)))
+day_map = {0: "M", 1: "Tu", 2: "W", 3: "Th", 4: "F", 5: "Sa", 6: "Su"}
+today_code = day_map[cst_now.weekday()]
 
-# 2. SCRAPE LIVE KANSAS GOOGLE SEARCH TRENDS (RSS)
-ks_trends = []
-try:
-    r = requests.get("https://trends.google.com/trending/rss?geo=US-KS", headers=HEADERS, timeout=10)
-    root = ET.fromstring(r.text)
-    for item in root.findall(".//item/title")[:5]:
-        ks_trends.append(item.text)
-except Exception:
-    ks_trends = ["late night study"]
+# 2. QUERY SUPABASE ku_schedule_matrix FOR HIGHEST-PRESSURE COURSES MEETING TODAY
+live_courses = {}
+for pipe in ["p1_stem", "p2_bus", "p3_clas", "p4_fem_asmr", "p5_night"]:
+    q = sb.table("ku_schedule_matrix").select("course_code,course_title,end_time,total_enrl,enroll_cap") \
+          .eq("pipeline_track", pipe).ilike("meeting_days", f"%{today_code}%") \
+          .order("pressure_score", desc=True).limit(5).execute()
+    live_courses[pipe] = q.data if q.data else []
 
-# 3. SCRAPE RISING NSFW & AESTHETIC TRENDS TO ADAPT ARCHETYPE SELECTION
-nsfw_titles = []
+# 3. LIVE LAWRENCE WEATHER API (TRIGGERS BUS-WAIT / DORM ISOLATION HOOKS)
+weather_desc = "Clear late night"
 try:
-    r = requests.get("https://www.reddit.com/r/all/top.json?t=day&include_over_18=on&limit=25", headers=HEADERS, timeout=10)
-    for post in r.json().get("data", {}).get("children", []):
-        if post["data"].get("over_18"):
-            nsfw_titles.append(post["data"].get("title", ""))
+    w = requests.get("https://api.open-meteo.com/v1/forecast?latitude=38.9717&longitude=-95.2353&current=temperature_2m,precipitation", timeout=8).json()
+    temp_f = round(w["current"]["temperature_2m"] * 9/5 + 32)
+    precip = w["current"]["precipitation"]
+    weather_desc = f"{temp_f}F, {'Rain/Snow active' if precip > 0 else 'Dry'}"
 except Exception:
     pass
 
-# 4. GEMINI AUTONOMOUS SYNTHESIS (CORTISOL PRIME + OPTIMAL ARCHETYPE)
-prompt = f"""You are an autonomous behavioral conversion engine.
-Live campus stress topics: {ku_posts}
-Live Kansas search trends: {ks_trends}
-Live 18+ rising trend titles: {nsfw_titles[:8]}
+# 4. LIVE KU + LAWRENCE SUBREDDITS & KANSAS GOOGLE TRENDS
+campus_buzz, ks_trends = [], []
+for sub in ["UniversityofKansas", "Lawrence"]:
+    try:
+        r = requests.get(f"https://www.reddit.com/r/{sub}/new.json?limit=6", headers=UA, timeout=8)
+        campus_buzz += [p["data"].get("title","") for p in r.json().get("data",{}).get("children",[])]
+    except Exception:
+        pass
 
-Tasks:
-1. Pick which archetype ["fit", "alt", "casual", "goth", "tech"] best aligns with current rising trends.
-2. Write a 1-sentence 'cortisol_hook' that mirrors the current campus stress/mood above to trigger acute relatability, then pivots to taking a 6-second sensory reset.
-CRITICAL LEGAL RULE: NEVER mention KU, Kansas, Lawrence, Jayhawks, or any specific university name.
-3. Provide a 2-word 'nsfw_search_query' matching the hottest current 18+ trend.
+try:
+    r = requests.get("https://trends.google.com/trending/rss?geo=US-KS", headers=UA, timeout=8)
+    ks_trends = [i.text for i in ET.fromstring(r.text).findall(".//item/title")[:5]]
+except Exception:
+    pass
+
+# 5. LIVE NSFW FETISH VELOCITY (REDDIT 18+ + GONEWILDAUDIO + REDGIFS + DANBOORU)
+vis_nsfw, aud_nsfw, tag_velocity = [], [], []
+try:
+    r = requests.get("https://www.reddit.com/r/all/top.json?t=day&include_over_18=on&limit=25", headers=UA, timeout=8)
+    vis_nsfw = [f"{p['data'].get('subreddit')}: {p['data'].get('title')}" for p in r.json().get("data",{}).get("children",[]) if p["data"].get("over_18")]
+except Exception:
+    pass
+
+try:
+    r = requests.get("https://www.reddit.com/r/GoneWildAudio/hot.json?limit=10", headers=UA, timeout=8)
+    aud_nsfw = [p["data"].get("title","") for p in r.json().get("data",{}).get("children",[])]
+except Exception:
+    pass
+
+try:
+    r = requests.get("https://danbooru.donmai.us/tags.json?search[order]=count&limit=12", headers=UA, timeout=8)
+    tag_velocity = [t.get("name","") for t in r.json() if isinstance(t, dict)]
+except Exception:
+    pass
+
+# 6. GEMINI DYNAMIC SYNTHESIS ACROSS ALL 5 PIPELINES
+prompt = f"""CST Timestamp: {cst_now.strftime('%A %I:%M %p')}. Local Weather: {weather_desc}.
+Dynamic High-Pressure Courses Meeting Today by Pipeline: {json.dumps(live_courses)}
+Live Campus/City Buzz: {campus_buzz[:8]}
+Live Kansas Search Trends: {ks_trends}
+Live Visual 18+ Velocity: {vis_nsfw[:8]}
+Live Female Audio 18+ Velocity: {aud_nsfw[:6]}
+Live Fetish Tag Taxonomy: {tag_velocity}
+
+Generate 1 hyper-specific cortisol-to-dopamine hook and 1 trending 2-word 18+ search query for each of the 5 pipelines using today's live courses, weather, and fetish velocity above.
+LEGAL RULE: NEVER output 'KU', 'Kansas', 'Lawrence', or 'Jayhawks'. Reference course numbers (e.g. CHEM 335, ME 212, BUS 150) or bus route numbers (Route 11, Route 30, Route 43) only.
 
 Return ONLY valid JSON:
-{{"preferred_archetype": "...", "cortisol_hook": "...", "nsfw_search_query": "..."}}"""
+{{
+  "p1_stem": {{"arch": "cosplay", "hook": "...", "query": "..."}},
+  "p2_bus": {{"arch": "fit", "hook": "...", "query": "..."}},
+  "p3_clas": {{"arch": "casual", "hook": "...", "query": "..."}},
+  "p4_fem_asmr": {{"arch": "asmr", "hook": "...", "query": "..."}},
+  "p5_night": {{"arch": "alt", "hook": "...", "query": "..."}}
+}}"""
 
 resp = ai.models.generate_content(model="gemini-2.5-flash", contents=prompt)
-synth = json.loads(resp.text.strip().removeprefix("```json").removesuffix("```").strip())
+plan = json.loads(resp.text.strip().removeprefix("```json").removesuffix("```").strip())
 
-# 5. PULL OPTIMAL COOLIDGE-ROTATED ASSET FROM SUPABASE
-res = sb.rpc("get_optimal_asset", {"preferred_arch": synth["preferred_archetype"]}).execute()
-if not res.data:
-    res = sb.rpc("get_optimal_asset", {"preferred_arch": None}).execute()
-asset = res.data[0]
+for track_id, cfg in plan.items():
+    res = sb.rpc("get_optimal_asset", {"req_track": track_id, "pref_arch": cfg["arch"]}).execute()
+    if not res.data:
+        res = sb.rpc("get_optimal_asset", {"req_track": None, "pref_arch": None}).execute()
+    if not res.data:
+        continue
+    asset = res.data[0]
+    q = cfg["query"].replace(" ", "+")
+    payoff = f"https://www.reddit.com/r/GoneWildAudio/search/?q={q}&restrict_sr=1&include_over_18=on&sort=hot" if track_id == "p4_fem_asmr" else f"https://www.reddit.com/search/?q={q}+nsfw%3Ayes&include_over_18=on&sort=hot"
 
-dynamic_payoff = f"https://www.reddit.com/search/?q={synth['nsfw_search_query'].replace(' ', '+')}+nsfw%3Ayes&include_over_18=on&sort=hot"
+    sb.table("media_assets").update({
+        "cortisol_hook": cfg["hook"],
+        "fetish_tag": cfg["query"],
+        "payoff_url": payoff,
+        "last_posted_at": "now()"
+    }).eq("id", asset["asset_id"]).execute()
 
-# 6. UPDATE PWA LIVE FEED & asset hook
-sb.table("media_assets").update({
-    "cortisol_hook": synth["cortisol_hook"],
-    "payoff_url": dynamic_payoff,
-    "last_posted_at": "now()"
-}).eq("id", asset["asset_id"]).execute()
+    sb.table("deployment_logs").insert({
+        "asset_id": asset["asset_id"],
+        "pipeline_track": track_id,
+        "archetype": asset["archetype"],
+        "demographic": asset["demographic"],
+        "intensity_tier": asset["intensity_tier"]
+    }).execute()
 
-sb.table("live_feed").update({
-    "asset_id": asset["asset_id"],
-    "video_url": asset["video_url"],
-    "archetype": asset["archetype"],
-    "intensity_tier": asset["intensity_tier"],
-    "cortisol_hook": synth["cortisol_hook"],
-    "trending_nsfw_tag": synth["nsfw_search_query"],
-    "payoff_url": dynamic_payoff,
-    "updated_at": "now()"
-}).eq("id", 1).execute()
-
-sb.table("deployment_logs").insert({
-    "asset_id": asset["asset_id"],
-    "archetype": asset["archetype"],
-    "demographic": asset["demographic"],
-    "intensity_tier": asset["intensity_tier"]
-}).execute()
-
-# 7. AUTONOMOUS DISPATCH TO MATRIX ROOM
-try:
-    room_id = os.environ["MATRIX_ROOM_ID"]
-    token = os.environ["MATRIX_ACCESS_TOKEN"]
-    txn = str(uuid.uuid4())
-    matrix_url = f"https://matrix-client.matrix.org/_matrix/client/v3/rooms/{room_id}/send/m.room.message/{txn}"
-    msg_body = f"⚠️ {synth['cortisol_hook']}\n🎧 6s Loop: {asset['video_url']}\n🔥 18+ Vault: https://focus-vibe-check.vercel.app"
-    requests.put(matrix_url, headers={"Authorization": f"Bearer {token}"}, json={"msgtype": "m.text", "body": msg_body}, timeout=10)
-except Exception as e:
-    print("Matrix skip:", e)
-
-# 8. AUTONOMOUS DISPATCH TO BLUESKY (ATPROTO)
-try:
-    bsky = BskyClient()
-    bsky.login(os.environ["BSKY_HANDLE"], os.environ["BSKY_APP_PASSWORD"])
-    post_text = f"{synth['cortisol_hook']}\n\n6-sec binaural focus reset + 18+ archive 👇\nhttps://focus-vibe-check.vercel.app"
-    bsky.send_post(text=post_text)
-except Exception as e:
-    print("Bluesky skip:", e)
-
-print("Cycle complete:", synth)
+print("Dynamic 5-Pipeline Sync Complete:", plan)
