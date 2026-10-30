@@ -200,8 +200,17 @@ async function nextAdaptiveLoop() {
   
   let pool = catalog.filter(x => !currentTrack || x.pipeline_track === currentTrack);
   if (pool.length === 0) pool = catalog;
+  
+  // IF DATABASE IS EMPTY, USE A SAFE FALLBACK SO IT NEVER BREAKS
   if (pool.length === 0) {
-    document.getElementById('hookTitle').innerText = "No loops found for this track.";
+    currentItem = {
+      video_url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoy.mp4",
+      payoff_video_url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoy.mp4",
+      cortisol_hook: "Late night vibes... waiting for next drop.",
+      archetype: "aesthetic",
+      fetish_tag: "chill"
+    };
+    renderPlayer();
     return;
   }
 
