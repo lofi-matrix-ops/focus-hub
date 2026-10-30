@@ -3,106 +3,81 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Late Night Sensory Reset Hub</title>
+<title>Late Night Sensory Reset & 18+ Vault</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-  body { margin:0; background:#060608; color:#f4f4f6; font-family:system-ui,-apple-system,sans-serif; display:flex; align-items:center; justify-content:center; min-height:100vh; text-align:center; }
-  .card { background:#101015; padding:22px; border-radius:18px; max-width:385px; width:92%; border:1px solid #262632; box-shadow:0 16px 40px rgba(0,0,0,0.95); }
+  body { margin:0; background:#050507; color:#f4f4f6; font-family:system-ui,-apple-system,sans-serif; display:flex; align-items:center; justify-content:center; min-height:100vh; text-align:center; }
+  .card { background:#101016; padding:20px; border-radius:18px; max-width:395px; width:92%; border:1px solid #282836; box-shadow:0 16px 45px rgba(0,0,0,0.95); }
   .badge { background:#6366f1; color:#fff; font-size:0.68rem; font-weight:800; padding:4px 10px; border-radius:99px; text-transform:uppercase; display:inline-block; }
-  .tabs { display:flex; gap:6px; margin:12px 0; justify-content:center; flex-wrap:wrap; }
-  .tab { background:#1d1d26; color:#a1a1aa; border:1px solid #2e2e3a; border-radius:8px; padding:6px 10px; font-size:0.75rem; cursor:pointer; font-weight:600; }
+  .badge-hot { background:#e11d48; }
+  .tabs { display:flex; gap:5px; margin:11px 0; justify-content:center; flex-wrap:wrap; }
+  .tab { background:#1b1b24; color:#a1a1aa; border:1px solid #2e2e3c; border-radius:8px; padding:6px 9px; font-size:0.73rem; cursor:pointer; font-weight:600; }
   .tab.active { background:#6366f1; color:#fff; border-color:#6366f1; }
-  h2 { margin:10px 0 8px; font-size:1.05rem; line-height:1.35; }
+  h2 { margin:8px 0; font-size:1.0rem; line-height:1.35; min-height:2.6em; display:flex; align-items:center; justify-content:center; }
   p { color:#a1a1aa; font-size:0.84rem; line-height:1.4; margin-bottom:14px; }
-  video { width:100%; border-radius:12px; background:#000; height:360px; object-fit:cover; margin-bottom:10px; border:1px solid #2e2e3a; }
-  .audio-bar { font-size:0.75rem; color:#818cf8; margin-bottom:12px; font-weight:600; }
-  .btn { display:block; width:100%; padding:13px 0; background:#6366f1; color:#fff; text-decoration:none; border-radius:10px; font-weight:700; font-size:0.93rem; border:none; cursor:pointer; margin-bottom:9px; }
-  .btn-disc { background:#5865F2; }
+  video { width:100%; border-radius:12px; background:#000; height:390px; object-fit:cover; margin-bottom:8px; border:1px solid #2e2e3a; }
+  .audio-bar { font-size:0.73rem; color:#818cf8; margin-bottom:11px; font-weight:600; }
+  .btn { display:block; width:100%; padding:13px 0; background:#6366f1; color:#fff; text-decoration:none; border-radius:10px; font-weight:700; font-size:0.92rem; border:none; cursor:pointer; margin-bottom:8px; }
   .btn-hot { background:#e11d48; }
+  .btn-disc { background:#5865F2; }
   #vault { display:none; }
 </style>
 </head>
 <body>
 
 <div class="card" id="gate">
-  <span class="badge">18+ MANDATORY AGE GATE</span>
-  <h2>Late Night Sensory Reset & Vault</h2>
-  <p>This autonomous study-break hub synthesizes 6Hz binaural sub-bass loops and routes to unmoderated 18+ Discord & Reddit feeds. Confirm you are 18+ to enter.</p>
-  <button class="btn" onclick="unlock()">I am 18 or older — Unlock Vault 🎧</button>
+  <span class="badge">18+ MANDATORY COMPLIANCE GATE</span>
+  <h2>Adaptive Sensory Reset & Unfiltered Vault</h2>
+  <p>This neural-adaptive hub synthesizes 6Hz Theta binaural sub-bass loops and streams unmoderated 18+ adult media tailored to your retention profile. Confirm you are 18+ to enter.</p>
+  <button class="btn" onclick="unlock()">I am 18 or older — Enter Vault 🎧</button>
 </div>
 
 <div class="card" id="vault">
-  <span class="badge" id="tierTag">🎧 6-SEC BINAURAL RESET</span>
+  <span class="badge" id="tierTag">🎧 ADAPTIVE NEURAL LOOP</span>
   <div class="tabs">
-    <button class="tab active" onclick="setTrack('p1_stem', this)">CAD/STEM</button>
-    <button class="tab" onclick="setTrack('p2_bus', this)">Fit/Exec</button>
-    <button class="tab" onclick="setTrack('p3_clas', this)">Orgo/Study</button>
-    <button class="tab" onclick="setTrack('p4_fem_asmr', this)">ASMR/Audio</button>
+    <button class="tab active" onclick="setTrack(null, this)">Smart Match</button>
+    <button class="tab" onclick="setTrack('p1_stem', this)">STEM/CAD</button>
+    <button class="tab" onclick="setTrack('p2_bus', this)">Exec/Fit</button>
+    <button class="tab" onclick="setTrack('p3_clas', this)">Late Study</button>
+    <button class="tab" onclick="setTrack('p4_fem_asmr', this)">3D ASMR</button>
     <button class="tab" onclick="setTrack('p5_night', this)">2AM Shift</button>
   </div>
-  <h2 id="hookTitle">Syncing loop...</h2>
-  <video id="vidPlayer" playsinline autoplay loop muted controls></video>
-  <div class="audio-bar" id="binauralStatus">🔊 100Hz/106Hz (6Hz Theta) Binaural Sub-Bass Active</div>
-  <button class="btn" onclick="nextLoop()">↻ Spin Next Variable Loop (Coolidge Shift)</button>
-  <a id="discordLink" href="#" target="_blank" class="btn btn-disc" onclick="trackConvert()">💬 Join 18+ Unfiltered Discord Vault</a>
-  <a id="payoffLink" href="#" target="_blank" class="btn btn-hot" onclick="trackConvert()">🔥 Open Full Uncensored 18+ Trend Feed</a>
+  <h2 id="hookTitle">Syncing live telemetry...</h2>
+  <video id="vidPlayer" playsinline autoplay loop controls></video>
+  <div class="audio-bar">🔊 100Hz/106Hz (6Hz Theta) Binaural Sub-Bass + Neural Voice Active</div>
+  <button class="btn" onclick="nextAdaptiveLoop()">↻ Next Adaptive Loop (Coolidge Shift)</button>
+  <button class="btn btn-hot" onclick="unlockUncensored()">🔥 Switch to Uncensored 18+ Stream (In-Page)</button>
+  <a href="https://discord.gg/M2hH8xX6EL" target="_blank" class="btn btn-disc" onclick="logTelemetry(true)">💬 Join 18+ Unfiltered Discord Server (Live Drops)</a>
 </div>
 
 <script>
-// PASTE YOUR 3 VALUES BELOW:
 const SUPABASE_URL = "https://btqqzpkcuqqevlelozlb.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ0cXF6cGtjdXFxZXZsZWxvemxiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMyMjI2OTYsImV4cCI6MjEwODc5ODY5Nn0.jafB2YzCTJ0kAmSdpZ8pByvwb8DQUy54Pl8jiDMkJ3Q";
-const DISCORD_INVITE = "https://discord.gg/M2hH8xX6EL";
-
-// BUILT-IN INSTANT FALLBACK MATRIX (Guarantees loop plays even if Supabase isn't connected yet)
-const FALLBACK_LOOPS = {
-  p1_stem: {
-    video_url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
-    cortisol_hook: "ME 212 Thermo & 2AM compiler bugs frying your focus? Lock into this 6-second binaural reset:",
-    fetish_tag: "goth choker", archetype: "cosplay", intensity_tier: "tease_70",
-    payoff_url: "https://www.reddit.com/search/?q=goth+choker+nsfw%3Ayes&include_over_18=on&sort=hot"
-  },
-  p2_bus: {
-    video_url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
-    cortisol_hook: "BUS 150 & FIN 415 spreadsheets done for the night? Take your after-hours dopamine drop:",
-    fetish_tag: "gym shorts", archetype: "fit", intensity_tier: "tease_70",
-    payoff_url: "https://www.reddit.com/search/?q=gym+shorts+nsfw%3Ayes&include_over_18=on&sort=hot"
-  },
-  p3_clas: {
-    video_url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4",
-    cortisol_hook: "Survived the 10PM CHEM 335 Organic Chem II exam block? Unfiltered cortisol reset unlocked:",
-    fetish_tag: "college pov", archetype: "casual", intensity_tier: "payoff_30",
-    payoff_url: "https://www.reddit.com/search/?q=college+pov+nsfw%3Ayes&include_over_18=on&sort=hot"
-  },
-  p4_fem_asmr: {
-    video_url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoy.mp4",
-    cortisol_hook: "ADS 320 studio crits & 2AM insomnia hitting? Put headphones on for 3D spatial relief:",
-    fetish_tag: "deep voice", archetype: "asmr", intensity_tier: "tease_70",
-    payoff_url: "https://www.reddit.com/r/GoneWildAudio/search/?q=deep+voice&restrict_sr=1&include_over_18=on&sort=hot"
-  },
-  p5_night: {
-    video_url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4",
-    cortisol_hook: "Missed the last Route 11 bus at 2AM? Enter the late-night insomniac archive:",
-    fetish_tag: "alt aesthetic", archetype: "alt", intensity_tier: "payoff_30",
-    payoff_url: "https://www.reddit.com/search/?q=alt+aesthetic+nsfw%3Ayes&include_over_18=on&sort=hot"
-  }
-};
-
-let sb = null;
-try {
-  if (SUPABASE_URL.startsWith("http")) {
-    sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  }
-} catch (e) {}
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const urlParams = new URLSearchParams(window.location.search);
-let currentTrack = urlParams.get('track') || 'p1_stem';
-let activeId = null;
+let currentTrack = urlParams.get('track') || null;
+let catalog = [];
+let seenIds = new Set();
+let lastArchetype = null;
+let lastDemo = null;
+let currentItem = null;
+let startWatchTime = 0;
+let uncensoredMode = false;
 let audioCtx = null;
 
-document.getElementById('discordLink').href = DISCORD_INVITE.startsWith("http") ? DISCORD_INVITE : "https://discord.com";
+// Per-User Contextual Bandit Affinity Profile in localStorage
+let userProfile = JSON.parse(localStorage.getItem('matrix_affinity_v1') || '{"arch":{},"demo":{},"tag":{}}');
 
-// NATIVE WEB AUDIO API 100Hz (L) + 106Hz (R) BINAURAL SUB-BASS ENGINE
+function saveAffinity(item, dwellMs, converted) {
+  if (!item) return;
+  const boost = Math.min(dwellMs / 4000.0, 2.5) + (converted ? 3.0 : 0);
+  userProfile.arch[item.archetype] = (userProfile.arch[item.archetype] || 1.0) + boost;
+  userProfile.demo[item.demographic] = (userProfile.demo[item.demographic] || 1.0) + boost;
+  userProfile.tag[item.fetish_tag] = (userProfile.tag[item.fetish_tag] || 1.0) + boost;
+  localStorage.setItem('matrix_affinity_v1', JSON.stringify(userProfile));
+}
+
 function startBinauralEngine() {
   try {
     if (audioCtx) return;
@@ -112,19 +87,11 @@ function startBinauralEngine() {
     const oscL = audioCtx.createOscillator();
     const oscR = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
-
-    oscL.type = 'sine';
-    oscR.type = 'sine';
-    oscL.frequency.value = 100; // 100Hz Left Ear
-    oscR.frequency.value = 106; // 106Hz Right Ear -> 6Hz Theta Binaural Beat
-    gain.gain.value = 0.08;
-
-    oscL.connect(merger, 0, 0);
-    oscR.connect(merger, 0, 1);
-    merger.connect(gain);
-    gain.connect(audioCtx.destination);
-    oscL.start();
-    oscR.start();
+    oscL.frequency.value = 100; oscR.frequency.value = 106;
+    gain.gain.value = 0.06;
+    oscL.connect(merger, 0, 0); oscR.connect(merger, 0, 1);
+    merger.connect(gain); gain.connect(audioCtx.destination);
+    oscL.start(); oscR.start();
   } catch (e) {}
 }
 
@@ -132,53 +99,82 @@ async function unlock() {
   document.getElementById('gate').style.display = 'none';
   document.getElementById('vault').style.display = 'block';
   startBinauralEngine();
-  await nextLoop();
+  const { data } = await sb.from('media_assets').select('*').order('last_posted_at', { ascending: false }).limit(60);
+  if (data) catalog = data;
+  await nextAdaptiveLoop();
+}
+
+async function logTelemetry(converted) {
+  if (!currentItem) return;
+  const dwell = Math.round(performance.now() - startWatchTime);
+  saveAffinity(currentItem, dwell, converted);
+  try {
+    await sb.rpc('record_telemetry', { target_id: currentItem.id, dwell_ms: dwell, did_convert: converted });
+  } catch (e) {}
 }
 
 async function setTrack(t, btn) {
+  await logTelemetry(false);
   currentTrack = t;
+  uncensoredMode = false;
   document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
   btn.classList.add('active');
-  await nextLoop();
+  await nextAdaptiveLoop();
 }
 
-function renderItem(item) {
+function scoreCandidate(item) {
+  // Combine global Beta-distribution Thompson sample + personal localStorage affinity + Coolidge novelty penalty
+  const globalScore = (item.alpha_weight || 1.0) / ((item.alpha_weight || 1.0) + (item.beta_weight || 1.0));
+  const personalArch = userProfile.arch[item.archetype] || 1.0;
+  const personalDemo = userProfile.demo[item.demographic] || 1.0;
+  const personalTag = userProfile.tag[item.fetish_tag] || 1.0;
+  let noveltyMultiplier = 1.0;
+  if (item.archetype === lastArchetype) noveltyMultiplier *= 0.25; // Coolidge Effect forced contrast
+  if (item.demographic === lastDemo) noveltyMultiplier *= 0.35;
+  if (seenIds.has(item.id)) noveltyMultiplier *= 0.15;
+  return (globalScore * 2.0 + Math.log1p(personalArch + personalDemo + personalTag)) * noveltyMultiplier * (0.8 + Math.random() * 0.4);
+}
+
+async function nextAdaptiveLoop() {
+  if (currentItem) await logTelemetry(false);
+  uncensoredMode = Math.random() < 0.30; // 70% Tease / 30% Unpredictable Variable Payoff Schedule
+  let pool = catalog.filter(x => !currentTrack || x.pipeline_track === currentTrack);
+  if (pool.length === 0) pool = catalog;
+  if (pool.length === 0) return;
+
+  pool.sort((a, b) => scoreCandidate(b) - scoreCandidate(a));
+  currentItem = pool[0];
+  seenIds.add(currentItem.id);
+  lastArchetype = currentItem.archetype;
+  lastDemo = currentItem.demographic;
+  renderPlayer();
+}
+
+function renderPlayer() {
+  if (!currentItem) return;
   const v = document.getElementById('vidPlayer');
-  v.src = item.video_url;
+  v.src = uncensoredMode ? (currentItem.payoff_video_url || currentItem.video_url) : currentItem.video_url;
   v.currentTime = 0;
-  v.play().catch(() => { v.muted = true; v.play(); });
-  // Enforce 6.0-second Zeigarnik Incomplete Loop Cut in Browser
-  v.ontimeupdate = () => { if (v.currentTime >= 6.0) v.currentTime = 0; };
+  v.muted = false;
+  v.play().catch(() => { v.muted = true; v.play().catch(()=>{}); });
+  v.ontimeupdate = () => { if (!uncensoredMode && v.currentTime >= 6.0) v.currentTime = 0; };
 
-  document.getElementById('hookTitle').innerText = item.cortisol_hook;
-  document.getElementById('tierTag').innerText = item.intensity_tier === 'payoff_30'
-    ? `🔥 30% PAYOFF DROP • ${(item.fetish_tag || 'UNCENSORED').toUpperCase()}`
-    : `🎧 6-SEC RESET • ${(item.archetype || 'LOOP').toUpperCase()}`;
-  document.getElementById('payoffLink').href = item.payoff_url;
-}
-
-async function nextLoop() {
-  let loaded = false;
-  if (sb) {
-    try {
-      let { data } = await sb.rpc('get_optimal_asset', { req_track: currentTrack, pref_arch: null });
-      if (data && data.length > 0) {
-        activeId = data[0].asset_id;
-        renderItem(data[0]);
-        loaded = true;
-        await sb.rpc('record_interaction', { target_id: activeId, is_conversion: false });
-      }
-    } catch (e) {}
-  }
-  if (!loaded) {
-    renderItem(FALLBACK_LOOPS[currentTrack] || FALLBACK_LOOPS.p1_stem);
+  startWatchTime = performance.now();
+  document.getElementById('hookTitle').innerText = currentItem.cortisol_hook;
+  const tagEl = document.getElementById('tierTag');
+  if (uncensoredMode) {
+    tagEl.className = "badge badge-hot";
+    tagEl.innerText = `🔞 30% VARIABLE PAYOFF • ${(currentItem.fetish_tag || '').toUpperCase()}`;
+  } else {
+    tagEl.className = "badge";
+    tagEl.innerText = `🎧 6-SEC RESET • ${(currentItem.archetype || '').toUpperCase()} • ${(currentItem.demographic || '').toUpperCase()}`;
   }
 }
 
-async function trackConvert() {
-  if (sb && activeId) {
-    try { await sb.rpc('record_interaction', { target_id: activeId, is_conversion: true }); } catch (e) {}
-  }
+async function unlockUncensored() {
+  uncensoredMode = true;
+  renderPlayer();
+  await logTelemetry(true);
 }
 </script>
 </body>
