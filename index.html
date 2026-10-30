@@ -6,48 +6,94 @@
 <title>Late Night Sensory Reset & 18+ Vault</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-  body { margin:0; background:#050507; color:#f4f4f6; font-family:system-ui,-apple-system,sans-serif; display:flex; align-items:center; justify-content:center; min-height:100vh; text-align:center; }
-  .card { background:#101016; padding:20px; border-radius:18px; max-width:395px; width:92%; border:1px solid #282836; box-shadow:0 16px 45px rgba(0,0,0,0.95); }
-  .badge { background:#6366f1; color:#fff; font-size:0.68rem; font-weight:800; padding:4px 10px; border-radius:99px; text-transform:uppercase; display:inline-block; }
-  .badge-hot { background:#e11d48; }
-  .tabs { display:flex; gap:5px; margin:11px 0; justify-content:center; flex-wrap:wrap; }
-  .tab { background:#1b1b24; color:#a1a1aa; border:1px solid #2e2e3c; border-radius:8px; padding:6px 9px; font-size:0.73rem; cursor:pointer; font-weight:600; }
-  .tab.active { background:#6366f1; color:#fff; border-color:#6366f1; }
-  h2 { margin:8px 0; font-size:1.0rem; line-height:1.35; min-height:2.6em; display:flex; align-items:center; justify-content:center; }
-  p { color:#a1a1aa; font-size:0.84rem; line-height:1.4; margin-bottom:14px; }
-  video { width:100%; border-radius:12px; background:#000; height:390px; object-fit:cover; margin-bottom:8px; border:1px solid #2e2e3a; }
-  .audio-bar { font-size:0.73rem; color:#818cf8; margin-bottom:11px; font-weight:600; }
-  .btn { display:block; width:100%; padding:13px 0; background:#6366f1; color:#fff; text-decoration:none; border-radius:10px; font-weight:700; font-size:0.92rem; border:none; cursor:pointer; margin-bottom:8px; }
-  .btn-hot { background:#e11d48; }
-  .btn-disc { background:#5865F2; }
-  #vault { display:none; }
+  :root {
+    --bg: #09090b;
+    --surface: rgba(24, 24, 27, 0.65);
+    --primary: #6366f1;
+    --primary-hover: #4f46e5;
+    --hot: #e11d48;
+    --hot-hover: #be123c;
+    --text: #f4f4f5;
+    --muted: #a1a1aa;
+    --border: rgba(255, 255, 255, 0.08);
+  }
+  body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Inter', system-ui, -apple-system, sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; overflow-x: hidden; }
+  
+  .container { width: 100%; max-width: 420px; padding: 16px; box-sizing: border-box; z-index: 10; }
+  
+  .card { background: var(--surface); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid var(--border); border-radius: 24px; padding: 24px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8); position: relative; text-align: center; }
+  
+  /* Ambient Background Glow */
+  .card::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(99,102,241,0.08) 0%, transparent 60%); pointer-events: none; z-index: -1; }
+  
+  .badge { background: rgba(99,102,241,0.15); color: #818cf8; border: 1px solid rgba(99,102,241,0.3); font-size: 0.65rem; font-weight: 700; padding: 6px 12px; border-radius: 99px; letter-spacing: 0.5px; text-transform: uppercase; display: inline-block; margin-bottom: 16px; }
+  .badge.hot { background: rgba(225,29,72,0.15); color: #fb7185; border-color: rgba(225,29,72,0.3); }
+  
+  h2 { font-size: 1.05rem; font-weight: 600; line-height: 1.4; margin: 0 0 16px 0; min-height: 3em; display: flex; align-items: center; justify-content: center; }
+  p { color: var(--muted); font-size: 0.85rem; line-height: 1.5; margin-bottom: 20px; }
+  
+  .video-wrapper { position: relative; width: 100%; border-radius: 16px; overflow: hidden; margin-bottom: 16px; background: #000; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid var(--border); }
+  video { width: 100%; height: 420px; object-fit: cover; display: block; }
+  
+  .tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 12px; margin-bottom: 8px; scrollbar-width: none; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab { flex: 0 0 auto; background: rgba(255,255,255,0.03); border: 1px solid var(--border); color: var(--muted); padding: 8px 16px; border-radius: 12px; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease; }
+  .tab.active { background: var(--primary); color: #fff; border-color: var(--primary); box-shadow: 0 4px 12px rgba(99,102,241,0.3); }
+  
+  .btn { width: 100%; padding: 14px; border-radius: 14px; font-weight: 700; font-size: 0.9rem; cursor: pointer; transition: all 0.2s ease; border: none; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; box-sizing: border-box; }
+  .btn-primary { background: var(--primary); color: #fff; box-shadow: 0 4px 12px rgba(99,102,241,0.2); }
+  .btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px); }
+  .btn-hot { background: var(--hot); color: #fff; box-shadow: 0 4px 12px rgba(225,29,72,0.2); }
+  .btn-hot:hover { background: var(--hot-hover); transform: translateY(-1px); }
+  .btn-discord { background: #5865F2; color: #fff; }
+  .btn-discord:hover { background: #4752C4; transform: translateY(-1px); }
+  
+  .audio-status { font-size: 0.75rem; color: var(--muted); display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 16px; font-weight: 500; }
+  .pulse { width: 8px; height: 8px; background: #10b981; border-radius: 50%; animation: pulse 2s infinite; }
+  @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(16,185,129,0.7); } 70% { box-shadow: 0 0 0 6px rgba(16,185,129,0); } 100% { box-shadow: 0 0 0 0 rgba(16,185,129,0); } }
+  
+  #vault { display: none; }
 </style>
 </head>
 <body>
 
-<div class="card" id="gate">
-  <span class="badge">18+ MANDATORY COMPLIANCE GATE</span>
-  <h2>Adaptive Sensory Reset & Unfiltered Vault</h2>
-  <p>This neural-adaptive hub synthesizes 6Hz Theta binaural sub-bass loops and streams unmoderated 18+ adult media tailored to your retention profile. Confirm you are 18+ to enter.</p>
-  <button class="btn" onclick="unlock()">I am 18 or older — Enter Vault 🎧</button>
-</div>
-
-<div class="card" id="vault">
-  <span class="badge" id="tierTag">🎧 ADAPTIVE NEURAL LOOP</span>
-  <div class="tabs">
-    <button class="tab active" onclick="setTrack(null, this)">Smart Match</button>
-    <button class="tab" onclick="setTrack('p1_stem', this)">STEM/CAD</button>
-    <button class="tab" onclick="setTrack('p2_bus', this)">Exec/Fit</button>
-    <button class="tab" onclick="setTrack('p3_clas', this)">Late Study</button>
-    <button class="tab" onclick="setTrack('p4_fem_asmr', this)">3D ASMR</button>
-    <button class="tab" onclick="setTrack('p5_night', this)">2AM Shift</button>
+<div class="container">
+  <!-- GATE UI -->
+  <div class="card" id="gate">
+    <span class="badge">18+ MANDATORY COMPLIANCE GATE</span>
+    <h2 style="min-height: auto;">Adaptive Sensory Reset & Unfiltered Vault</h2>
+    <p>This neural-adaptive hub synthesizes 6Hz Theta binaural sub-bass loops and streams unmoderated 18+ adult media tailored to your retention profile. Confirm you are 18+ to enter.</p>
+    <button class="btn btn-primary" onclick="unlock()">I am 18 or older — Enter Vault 🎧</button>
   </div>
-  <h2 id="hookTitle">Syncing live telemetry...</h2>
-  <video id="vidPlayer" playsinline autoplay loop controls></video>
-  <div class="audio-bar">🔊 100Hz/106Hz (6Hz Theta) Binaural Sub-Bass + Neural Voice Active</div>
-  <button class="btn" onclick="nextAdaptiveLoop()">↻ Next Adaptive Loop (Coolidge Shift)</button>
-  <button class="btn btn-hot" onclick="unlockUncensored()">🔥 Switch to Uncensored 18+ Stream (In-Page)</button>
-  <a href="https://discord.gg/M2hH8xX6EL" target="_blank" class="btn btn-disc" onclick="logTelemetry(true)">💬 Join 18+ Unfiltered Discord Server (Live Drops)</a>
+
+  <!-- VAULT UI -->
+  <div class="card" id="vault">
+    <span class="badge" id="tierTag">🎧 ADAPTIVE NEURAL LOOP</span>
+    
+    <div class="tabs">
+      <button class="tab active" onclick="setTrack(null, this)">Smart Match</button>
+      <button class="tab" onclick="setTrack('p1_stem', this)">STEM/CAD</button>
+      <button class="tab" onclick="setTrack('p2_bus', this)">Exec/Fit</button>
+      <button class="tab" onclick="setTrack('p3_clas', this)">Late Study</button>
+      <button class="tab" onclick="setTrack('p4_fem_asmr', this)">3D ASMR</button>
+      <button class="tab" onclick="setTrack('p5_night', this)">2AM Shift</button>
+    </div>
+    
+    <h2 id="hookTitle">Connecting to secure database...</h2>
+    
+    <div class="video-wrapper">
+      <video id="vidPlayer" playsinline webkit-playsinline preload="auto" autoplay loop></video>
+    </div>
+    
+    <div class="audio-status">
+      <div class="pulse"></div>
+      100Hz/106Hz (6Hz Theta) Binaural Sub-Bass Active
+    </div>
+    
+    <button class="btn btn-primary" onclick="nextAdaptiveLoop()">↻ Next Adaptive Loop (Coolidge Shift)</button>
+    <button class="btn btn-hot" onclick="unlockUncensored()">🔥 Switch to Uncensored 18+ Stream</button>
+    <a href="https://discord.gg/M2hH8xX6EL" target="_blank" class="btn btn-discord" onclick="logTelemetry(true)">💬 Join 18+ Unfiltered Discord Server</a>
+  </div>
 </div>
 
 <script>
@@ -80,7 +126,7 @@ function saveAffinity(item, dwellMs, converted) {
 
 function startBinauralEngine() {
   try {
-    if (audioCtx) return;
+    if (audioCtx) { audioCtx.resume(); return; }
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     audioCtx = new AudioContext();
     const merger = audioCtx.createChannelMerger(2);
@@ -92,16 +138,30 @@ function startBinauralEngine() {
     oscL.connect(merger, 0, 0); oscR.connect(merger, 0, 1);
     merger.connect(gain); gain.connect(audioCtx.destination);
     oscL.start(); oscR.start();
-  } catch (e) {}
+  } catch (e) { console.warn("AudioContext blocked by browser."); }
 }
 
 async function unlock() {
   document.getElementById('gate').style.display = 'none';
   document.getElementById('vault').style.display = 'block';
   startBinauralEngine();
-  const { data } = await sb.from('media_assets').select('*').order('last_posted_at', { ascending: false }).limit(60);
-  if (data) catalog = data;
-  await nextAdaptiveLoop();
+  
+  document.getElementById('hookTitle').innerText = "Syncing live telemetry...";
+  
+  try {
+    const { data, error } = await sb.from('media_assets').select('*').order('last_posted_at', { ascending: false }).limit(60);
+    if (error) throw error;
+    
+    if (data && data.length > 0) {
+      catalog = data;
+      await nextAdaptiveLoop();
+    } else {
+      document.getElementById('hookTitle').innerText = "Vault is currently empty. Awaiting next drop.";
+    }
+  } catch (err) {
+    console.error(err);
+    document.getElementById('hookTitle').innerText = "Connection error. Please refresh the page.";
+  }
 }
 
 async function logTelemetry(converted) {
@@ -123,13 +183,12 @@ async function setTrack(t, btn) {
 }
 
 function scoreCandidate(item) {
-  // Combine global Beta-distribution Thompson sample + personal localStorage affinity + Coolidge novelty penalty
   const globalScore = (item.alpha_weight || 1.0) / ((item.alpha_weight || 1.0) + (item.beta_weight || 1.0));
   const personalArch = userProfile.arch[item.archetype] || 1.0;
   const personalDemo = userProfile.demo[item.demographic] || 1.0;
   const personalTag = userProfile.tag[item.fetish_tag] || 1.0;
   let noveltyMultiplier = 1.0;
-  if (item.archetype === lastArchetype) noveltyMultiplier *= 0.25; // Coolidge Effect forced contrast
+  if (item.archetype === lastArchetype) noveltyMultiplier *= 0.25;
   if (item.demographic === lastDemo) noveltyMultiplier *= 0.35;
   if (seenIds.has(item.id)) noveltyMultiplier *= 0.15;
   return (globalScore * 2.0 + Math.log1p(personalArch + personalDemo + personalTag)) * noveltyMultiplier * (0.8 + Math.random() * 0.4);
@@ -137,10 +196,14 @@ function scoreCandidate(item) {
 
 async function nextAdaptiveLoop() {
   if (currentItem) await logTelemetry(false);
-  uncensoredMode = Math.random() < 0.30; // 70% Tease / 30% Unpredictable Variable Payoff Schedule
+  uncensoredMode = Math.random() < 0.30; // 70% Tease / 30% Variable Payoff
+  
   let pool = catalog.filter(x => !currentTrack || x.pipeline_track === currentTrack);
   if (pool.length === 0) pool = catalog;
-  if (pool.length === 0) return;
+  if (pool.length === 0) {
+    document.getElementById('hookTitle').innerText = "No loops found for this track.";
+    return;
+  }
 
   pool.sort((a, b) => scoreCandidate(b) - scoreCandidate(a));
   currentItem = pool[0];
@@ -156,18 +219,24 @@ function renderPlayer() {
   v.src = uncensoredMode ? (currentItem.payoff_video_url || currentItem.video_url) : currentItem.video_url;
   v.currentTime = 0;
   v.muted = false;
-  v.play().catch(() => { v.muted = true; v.play().catch(()=>{}); });
+  
+  v.play().catch(() => { 
+    v.muted = true; 
+    v.play().catch(e => console.warn("Video playback blocked:", e)); 
+  });
+  
   v.ontimeupdate = () => { if (!uncensoredMode && v.currentTime >= 6.0) v.currentTime = 0; };
 
   startWatchTime = performance.now();
   document.getElementById('hookTitle').innerText = currentItem.cortisol_hook;
+  
   const tagEl = document.getElementById('tierTag');
   if (uncensoredMode) {
-    tagEl.className = "badge badge-hot";
-    tagEl.innerText = `🔞 30% VARIABLE PAYOFF • ${(currentItem.fetish_tag || '').toUpperCase()}`;
+    tagEl.className = "badge hot";
+    tagEl.innerText = `🔞 30% VARIABLE PAYOFF • ${(currentItem.fetish_tag || 'UNCENSORED').toUpperCase()}`;
   } else {
     tagEl.className = "badge";
-    tagEl.innerText = `🎧 6-SEC RESET • ${(currentItem.archetype || '').toUpperCase()} • ${(currentItem.demographic || '').toUpperCase()}`;
+    tagEl.innerText = `🎧 6-SEC RESET • ${(currentItem.archetype || 'AESTHETIC').toUpperCase()}`;
   }
 }
 
